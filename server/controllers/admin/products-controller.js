@@ -15,12 +15,12 @@ const handleImageUpload = async (req, res) => {
     console.log(error);
     res.json({
       success: false,
-      message: "Error occured",
+      message: "Error occurred",
     });
   }
 };
 
-//add a new product
+// Add a new product
 const addProduct = async (req, res) => {
   try {
     const {
@@ -33,6 +33,7 @@ const addProduct = async (req, res) => {
       salePrice,
       totalStock,
       averageReview,
+      sizes, // Added sizes to the request body
     } = req.body;
 
     console.log(averageReview, "averageReview");
@@ -47,6 +48,7 @@ const addProduct = async (req, res) => {
       salePrice,
       totalStock,
       averageReview,
+      sizes, // Save the sizes field
     });
 
     await newlyCreatedProduct.save();
@@ -58,13 +60,12 @@ const addProduct = async (req, res) => {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Error occured",
+      message: "Error occurred",
     });
   }
 };
 
-//fetch all products
-
+// Fetch all products
 const fetchAllProducts = async (req, res) => {
   try {
     const listOfProducts = await Product.find({});
@@ -76,12 +77,12 @@ const fetchAllProducts = async (req, res) => {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Error occured",
+      message: "Error occurred",
     });
   }
 };
 
-//edit a product
+// Edit a product
 const editProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -95,6 +96,7 @@ const editProduct = async (req, res) => {
       salePrice,
       totalStock,
       averageReview,
+      sizes, // Added sizes to the request body
     } = req.body;
 
     let findProduct = await Product.findById(id);
@@ -114,6 +116,7 @@ const editProduct = async (req, res) => {
     findProduct.totalStock = totalStock || findProduct.totalStock;
     findProduct.image = image || findProduct.image;
     findProduct.averageReview = averageReview || findProduct.averageReview;
+    findProduct.sizes = sizes || findProduct.sizes; // Update the sizes field
 
     await findProduct.save();
     res.status(200).json({
@@ -124,12 +127,12 @@ const editProduct = async (req, res) => {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Error occured",
+      message: "Error occurred",
     });
   }
 };
 
-//delete a product
+// Delete a product
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -143,13 +146,13 @@ const deleteProduct = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Product delete successfully",
+      message: "Product deleted successfully",
     });
   } catch (e) {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Error occured",
+      message: "Error occurred",
     });
   }
 };

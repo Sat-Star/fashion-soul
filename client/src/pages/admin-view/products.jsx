@@ -28,6 +28,7 @@ const initialFormData = {
   price: "",
   salePrice: "",
   totalStock: "",
+  sizes: "",
   averageReview: 0,
 };
 
@@ -46,12 +47,12 @@ function AdminProducts() {
 
   function onSubmit(event) {
     event.preventDefault();
-
+    const sizesArray = formData.sizes ? formData.sizes.split(",") : [];
     currentEditedId !== null
       ? dispatch(
           editProduct({
             id: currentEditedId,
-            formData,
+            formData: { ...formData, sizes: sizesArray }, 
           })
         ).then((data) => {
           console.log(data, "edit");
@@ -66,6 +67,7 @@ function AdminProducts() {
       : dispatch(
           addNewProduct({
             ...formData,
+            sizes: sizesArray,
             image: uploadedImageUrl,
           })
         ).then((data) => {
@@ -75,7 +77,7 @@ function AdminProducts() {
             setImageFile(null);
             setFormData(initialFormData);
             toast({
-              title: "Product add successfully",
+              title: "Product added successfully",
             });
           }
         });

@@ -11,6 +11,10 @@ const ProductSchema = new mongoose.Schema(
     salePrice: Number,
     totalStock: Number,
     averageReview: Number,
+    sizes: { // Added sizes field
+      type: [String], // Array of strings to store available sizes (e.g., ['S', 'M', 'L'])
+      required: true, // Make it required if necessary
+    },
   },
   { timestamps: true }
 );

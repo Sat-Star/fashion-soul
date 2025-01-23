@@ -32,6 +32,13 @@ function AdminProductTile({
               <span className="text-lg font-bold">${product?.salePrice}</span>
             ) : null}
           </div>
+          {/* Displaying available sizes */}
+          {product?.sizes && product?.sizes.length > 0 && (
+            <div className="mt-2">
+              <span className="font-medium">Available Sizes: </span>
+              <span>{product?.sizes.join(", ")}</span> {/* Display sizes comma-separated */}
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex justify-between items-center">
           <Button
