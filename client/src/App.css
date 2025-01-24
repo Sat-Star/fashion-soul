@@ -40,3 +40,22 @@
 .read-the-docs {
   color: #888;
 }
+
+img {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Scrollable thumbnail container */
+.scroll-thumbnails {
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+}
+
+.scroll-thumbnails::-webkit-scrollbar {
+  height: 4px;
+}
+
+.scroll-thumbnails::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 2px;
+}

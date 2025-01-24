@@ -184,6 +184,38 @@ export const filterOptions = {
     { id: "zara", label: "Zara" },
     { id: "h&m", label: "H&M" },
   ],
+  colors: [
+    { id: "white", label: "White" },
+    { id: "black", label: "Black" },
+    { id: "blue", label: "Blue" },
+    { id: "red", label: "Red" },
+  ],
+};
+
+export const colorOptionsMap = {
+  white: "White",
+  black: "Black",
+  blue: "Blue",
+  red: "Red",
+};
+
+export const colorConfig = {
+  White: {
+    hex: '#FFFFFF',
+    uploadLabel: 'Upload White Variant'
+  },
+  Black: {
+    hex: '#000000',
+    uploadLabel: 'Upload Black Variant'
+  },
+  Blue: {
+    hex: '#0000FF',
+    uploadLabel: 'Upload Blue Variant'
+  },
+  Red: {
+    hex: '#FF0000',
+    uploadLabel: 'Upload Red Variant'
+  }
 };
 
 export const sortOptions = [

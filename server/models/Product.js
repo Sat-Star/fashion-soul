@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const ProductSchema = new mongoose.Schema(
   {
-    image: String,
+    image: String, // Main image
     title: String,
     description: String,
     category: String,
@@ -11,10 +11,25 @@ const ProductSchema = new mongoose.Schema(
     salePrice: Number,
     totalStock: Number,
     averageReview: Number,
-    sizes: { // Added sizes field
+    sizes: {
       type: [String], // Array of strings to store available sizes (e.g., ['S', 'M', 'L'])
-      required: true, // Make it required if necessary
+      required: true,
     },
+    colors: [
+      {
+        colorName: { 
+          type: String, 
+          required: true,
+          enum: ['White', 'Black', 'Blue', 'Red'] // Limit allowed colors
+        },
+        colorCode: { 
+          type: String, 
+          required: true,
+          enum: ['#FFFFFF', '#000000', '#0000FF', '#FF0000']
+        },
+        image: String
+      }
+    ],
   },
   { timestamps: true }
 );

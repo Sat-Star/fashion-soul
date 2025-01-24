@@ -1,30 +1,41 @@
 const { imageUploadUtil } = require("../../helpers/cloudinary");
 const Product = require("../../models/Product");
 
+// Handle single image upload
 const handleImageUpload = async (req, res) => {
   try {
-    const b64 = Buffer.from(req.file.buffer).toString("base64");
-    const url = "data:" + req.file.mimetype + ";base64," + b64;
-    const result = await imageUploadUtil(url);
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
 
-    res.json({
+    if (!req.file.mimetype.startsWith("image/")) {
+      return res.status(400).json({
+        success: false,
+        message: "Only image files are allowed",
+      });
+    }
+
+    const result = await imageUploadUtil(req.file);
+    res.status(200).json({
       success: true,
-      result,
+      url: result.secure_url,
     });
   } catch (error) {
-    console.log(error);
-    res.json({
+    console.error("Image upload error:", error.message);
+    res.status(500).json({
       success: false,
-      message: "Error occurred",
+      message: error.message,
     });
   }
 };
 
-// Add a new product
+// Add new product
 const addProduct = async (req, res) => {
   try {
     const {
-      image,
       title,
       description,
       category,
@@ -32,127 +43,182 @@ const addProduct = async (req, res) => {
       price,
       salePrice,
       totalStock,
-      averageReview,
-      sizes, // Added sizes to the request body
+      sizes,
+      colors = [],
+      mainImage,
     } = req.body;
 
-    console.log(averageReview, "averageReview");
+    // Validate main image URL
+    if (!mainImage?.startsWith("http")) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid main image URL required",
+      });
+    }
 
-    const newlyCreatedProduct = new Product({
-      image,
-      title,
-      description,
-      category,
-      brand,
-      price,
-      salePrice,
-      totalStock,
-      averageReview,
-      sizes, // Save the sizes field
+    if (!Array.isArray(colors) || colors.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one valid color is required",
+      });
+    }
+
+    const validColors = colors.filter(
+      (color) =>
+        color?.colorName &&
+        color?.image?.startsWith("http") &&
+        ["White", "Black", "Blue", "Red"].includes(color.colorName)
+    );
+
+    // Create product
+    const newProduct = await Product.create({
+      title: title?.trim(),
+      description: description?.trim(),
+      category: category?.trim(),
+      brand: brand?.trim(),
+      price: Math.max(0, parseFloat(price)) || 0,
+      salePrice: Math.max(0, parseFloat(salePrice)) || 0,
+      totalStock: Math.max(0, parseInt(totalStock)) || 0,
+      sizes: Array.isArray(sizes)
+        ? sizes
+        : sizes
+        ? sizes.split(",").map((s) => s.trim())
+        : [],
+      colors: validColors,
+      image: mainImage,
+      averageReview: 0,
     });
 
-    await newlyCreatedProduct.save();
-    res.status(201).json({
-      success: true,
-      data: newlyCreatedProduct,
-    });
-  } catch (e) {
-    console.log(e);
+    res.status(201).json({ success: true, data: newProduct });
+  } catch (error) {
+    console.error("Add product error:", error.message);
     res.status(500).json({
       success: false,
-      message: "Error occurred",
+      message: error.message || "Product creation failed",
     });
   }
 };
 
-// Fetch all products
-const fetchAllProducts = async (req, res) => {
-  try {
-    const listOfProducts = await Product.find({});
-    res.status(200).json({
-      success: true,
-      data: listOfProducts,
-    });
-  } catch (e) {
-    console.log(e);
-    res.status(500).json({
-      success: false,
-      message: "Error occurred",
-    });
-  }
-};
-
-// Edit a product
 const editProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      image,
-      title,
-      description,
-      category,
-      brand,
-      price,
-      salePrice,
-      totalStock,
-      averageReview,
-      sizes, // Added sizes to the request body
-    } = req.body;
+    const updates = req.body;
 
-    let findProduct = await Product.findById(id);
-    if (!findProduct)
+    const product = await Product.findByIdAndUpdate(
+      id,
+      updates,
+      { new: true } // Return updated document
+    );
+    if (!product) {
       return res.status(404).json({
         success: false,
-        message: "Product not found",
+        message: "Product not found"
       });
+    }
 
-    findProduct.title = title || findProduct.title;
-    findProduct.description = description || findProduct.description;
-    findProduct.category = category || findProduct.category;
-    findProduct.brand = brand || findProduct.brand;
-    findProduct.price = price === "" ? 0 : price || findProduct.price;
-    findProduct.salePrice =
-      salePrice === "" ? 0 : salePrice || findProduct.salePrice;
-    findProduct.totalStock = totalStock || findProduct.totalStock;
-    findProduct.image = image || findProduct.image;
-    findProduct.averageReview = averageReview || findProduct.averageReview;
-    findProduct.sizes = sizes || findProduct.sizes; // Update the sizes field
+    // Update main image
+    if (updates.mainImage) {
+      if (updates.mainImage.startsWith('data:image/')) {
+        // Handle new image upload
+        const [mimeType, base64Data] = updates.mainImage.split(';base64,');
+        const result = await imageUploadUtil({
+          buffer: Buffer.from(base64Data, "base64"),
+          mimetype: mimeType.split(':')[1]
+        });
+        product.image = result.secure_url;
+      } else {
+        // Keep existing image
+        product.image = updates.mainImage;
+      }
+    }
 
-    await findProduct.save();
-    res.status(200).json({
-      success: true,
-      data: findProduct,
-    });
-  } catch (e) {
-    console.log(e);
+    // Update colors
+    if (updates.colors) {
+      let parsedColors;
+      try {
+        parsedColors = Array.isArray(updates.colors)
+          ? updates.colors
+          : JSON.parse(updates.colors);
+      } catch {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid color data format" });
+      }
+
+      product.colors = parsedColors.filter(
+        (color) =>
+          color?.colorName &&
+          color?.image?.startsWith("http") &&
+          ["White", "Black", "Blue", "Red"].includes(color.colorName)
+      );
+    }
+
+    // Update other fields
+    if (updates.title) product.title = updates.title.trim();
+    if (updates.description) product.description = updates.description.trim();
+    if (updates.category) product.category = updates.category.trim();
+    if (updates.brand) product.brand = updates.brand.trim();
+    if (updates.price) product.price = Math.max(0, parseFloat(updates.price));
+    if (updates.salePrice)
+      product.salePrice = Math.max(0, parseFloat(updates.salePrice));
+    if (updates.totalStock)
+      product.totalStock = Math.max(0, parseInt(updates.totalStock));
+    if (updates.sizes)
+      product.sizes = Array.isArray(updates.sizes)
+        ? updates.sizes
+        : updates.sizes.split(",").map((s) => s.trim());
+
+    await product.save();
+    res.json({ success: true, data: product });
+  } catch (error) {
+    console.error("Edit product error:", error.message);
     res.status(500).json({
       success: false,
-      message: "Error occurred",
+      message: error.message || "Product update failed",
     });
   }
 };
 
-// Delete a product
+// Get all products
+const fetchAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find().sort({ createdAt: -1 });
+    res.json({
+      success: true,
+      data: products,
+    });
+  } catch (error) {
+    console.error("Fetch products error:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch products",
+    });
+  }
+};
+
+// Delete product
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findByIdAndDelete(id);
+    const deletedProduct = await Product.findByIdAndDelete(id);
 
-    if (!product)
+    if (!deletedProduct) {
       return res.status(404).json({
         success: false,
         message: "Product not found",
       });
+    }
 
-    res.status(200).json({
+    res.json({
       success: true,
       message: "Product deleted successfully",
+      deletedId: id,
     });
-  } catch (e) {
-    console.log(e);
+  } catch (error) {
+    console.error("Delete product error:", error.message);
     res.status(500).json({
       success: false,
-      message: "Error occurred",
+      message: "Failed to delete product",
     });
   }
 };
@@ -160,7 +226,7 @@ const deleteProduct = async (req, res) => {
 module.exports = {
   handleImageUpload,
   addProduct,
-  fetchAllProducts,
   editProduct,
+  fetchAllProducts,
   deleteProduct,
 };
