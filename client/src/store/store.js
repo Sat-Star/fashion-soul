@@ -19,7 +19,7 @@ const store = configureStore({
     adminOrder: adminOrderSlice,
 
     shopProducts: shopProductsSlice,
-    shopCart: shopCartSlice,
+    shoppingCart: shopCartSlice,
     shopAddress: shopAddressSlice,
     shopOrder: shopOrderSlice,
     shopSearch: shopSearchSlice,

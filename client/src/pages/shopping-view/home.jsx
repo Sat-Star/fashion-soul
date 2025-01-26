@@ -92,6 +92,12 @@ function ShoppingHome() {
       }
     });
   }
+  
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchCartItems(user.id));
+    }
+  }, [dispatch, user?.id]);
 
   useEffect(() => {
     if (productDetails !== null) setOpenDetailsDialog(true);

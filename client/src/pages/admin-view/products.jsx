@@ -115,11 +115,6 @@ function AdminProducts() {
   const onSubmit = async (event) => {
     event.preventDefault();
 
-    if (!currentEditedId) { // Add safety check
-      toast({ variant: "destructive", title: "No product selected for editing" });
-      return;
-    }
-
     if (imageLoadingState || !uploadedImageUrl) {
       toast({
         variant: "destructive",
@@ -171,23 +166,6 @@ function AdminProducts() {
       toast({
         variant: "destructive",
         title: error.message || "Operation failed"
-      });
-    }
-
-    try {
-      const result = await dispatch(
-        editProduct({ id: currentEditedId, formData: payload })
-      ).unwrap();
-  
-      toast({ title: "Product updated successfully" });
-      
-      // Close dialog after success
-      setOpenCreateProductsDialog(false);
-      
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: error.message || "Update failed"
       });
     }
   };
