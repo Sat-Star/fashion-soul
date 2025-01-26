@@ -7,6 +7,12 @@ const initialState = {
   error: null,
 };
 
+const initialDirectCheckoutState = {
+  directCheckoutItems: [],
+  isLoading: false,
+  error: null
+};
+
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
   async ({ userId, productId, quantity, size, color }) => {
@@ -66,6 +72,21 @@ export const updateCartQuantity = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const createDirectCheckout = createAsyncThunk(
+  "directCheckout/createDirectCheckout",
+  async (checkoutData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/shop/cart/direct-checkout",
+        checkoutData
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data);
     }
   }
 );
@@ -138,4 +159,38 @@ const shoppingCartSlice = createSlice({
   },
 });
 
+export const directCheckoutSlice = createSlice({
+  name: "directCheckout",
+  initialState: initialDirectCheckoutState,
+  reducers: {
+    resetDirectCheckout: (state) => {
+      state.directCheckoutItems = [];
+    },
+    removeDirectCheckoutItem: (state, action) => {
+      state.directCheckoutItems = state.directCheckoutItems.filter(item => 
+        !(item.productId === action.payload.productId &&
+          item.size === action.payload.size &&
+          item.color.colorName === action.payload.color.colorName)
+      );
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(createDirectCheckout.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(createDirectCheckout.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.directCheckoutItems = action.payload.data;
+      })
+      .addCase(createDirectCheckout.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || "Direct checkout failed";
+      });
+  }
+});
+
 export default shoppingCartSlice.reducer;
+export const directCheckoutReducer = directCheckoutSlice.reducer;
+export const { resetDirectCheckout, removeDirectCheckoutItem } = directCheckoutSlice.actions;

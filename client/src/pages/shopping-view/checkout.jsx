@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router-dom";
 import Address from "@/components/shopping-view/address";
 import img from "../../assets/account.jpg";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,58 +10,59 @@ import { Navigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 
 function ShoppingCheckout() {
-  const { cartItems } = useSelector((state) => state.shopCart);
+  const [searchParams] = useSearchParams();
+  const isDirectCheckout = searchParams.get('type') === 'direct';
+  
+  // Get items from appropriate source
+  const { cartItems } = useSelector((state) => state.shoppingCart);
+  const { directCheckoutItems } = useSelector((state) => state.directCheckout);
   const { user } = useSelector((state) => state.auth);
   const { approvalURL } = useSelector((state) => state.shopOrder);
+  
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
   const [isPaymentStart, setIsPaymemntStart] = useState(false);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  console.log(currentSelectedAddress, "cartItems");
+  // Use correct items source
+  const itemsToDisplay = isDirectCheckout ? directCheckoutItems : cartItems || [];
+  const itemsTotal = isDirectCheckout ? directCheckoutItems : cartItems;
 
-  const totalCartAmount =
-    cartItems && cartItems.items && cartItems.items.length > 0
-      ? cartItems.items.reduce(
-          (sum, currentItem) =>
-            sum +
-            (currentItem?.salePrice > 0
-              ? currentItem?.salePrice
-              : currentItem?.price) *
-              currentItem?.quantity,
-          0
-        )
-      : 0;
+  const totalCartAmount = itemsTotal?.reduce(
+    (sum, currentItem) => sum + (
+      (currentItem?.salePrice > 0 ? currentItem?.salePrice : currentItem?.price) *
+      currentItem?.quantity
+    ),
+    0
+  ) || 0;
 
   function handleInitiatePaypalPayment() {
-    if (cartItems.length === 0) {
+    if (itemsToDisplay.length === 0) {
       toast({
         title: "Your cart is empty. Please add items to proceed",
         variant: "destructive",
       });
-
       return;
     }
-    if (currentSelectedAddress === null) {
+
+    if (!currentSelectedAddress) {
       toast({
         title: "Please select one address to proceed.",
         variant: "destructive",
       });
-
       return;
     }
 
     const orderData = {
       userId: user?.id,
-      cartId: cartItems?._id,
-      cartItems: cartItems.items.map((singleCartItem) => ({
+      cartId: isDirectCheckout ? 'direct-checkout' : cartItems?._id || 'regular-cart',
+      cartItems: itemsToDisplay.map((singleCartItem) => ({
         productId: singleCartItem?.productId,
         title: singleCartItem?.title,
         image: singleCartItem?.image,
-        price:
-          singleCartItem?.salePrice > 0
-            ? singleCartItem?.salePrice
-            : singleCartItem?.price,
+        price: singleCartItem?.salePrice > 0 
+          ? singleCartItem?.salePrice 
+          : singleCartItem?.price,
         quantity: singleCartItem?.quantity,
       })),
       addressInfo: {
@@ -82,7 +84,6 @@ function ShoppingCheckout() {
     };
 
     dispatch(createNewOrder(orderData)).then((data) => {
-      console.log(data, "sangam");
       if (data?.payload?.success) {
         setIsPaymemntStart(true);
       } else {
@@ -106,22 +107,34 @@ function ShoppingCheckout() {
           setCurrentSelectedAddress={setCurrentSelectedAddress}
         />
         <div className="flex flex-col gap-4">
-          {cartItems && cartItems.items && cartItems.items.length > 0
-            ? cartItems.items.map((item) => (
-                <UserCartItemsContent cartItem={item} />
-              ))
-            : null}
+          {itemsToDisplay.length > 0 ? (
+            itemsToDisplay.map((item) => (
+              <UserCartItemsContent 
+              key={`${item.productId}-${item.size}-${item.color?.colorName}`}
+              cartItem={item}
+              isDirectCheckout={isDirectCheckout}  // Pass the checkout type
+            />
+            ))
+          ) : (
+            <p className="text-muted-foreground">No items to display</p>
+          )}
+          
           <div className="mt-8 space-y-4">
             <div className="flex justify-between">
               <span className="font-bold">Total</span>
-              <span className="font-bold">${totalCartAmount}</span>
+              <span className="font-bold">₹{totalCartAmount.toFixed(2)}</span>
             </div>
           </div>
+          
           <div className="mt-4 w-full">
-            <Button onClick={handleInitiatePaypalPayment} className="w-full">
+            <Button 
+              onClick={handleInitiatePaypalPayment} 
+              className="w-full"
+              disabled={isPaymentStart}
+            >
               {isPaymentStart
                 ? "Processing Paypal Payment..."
-                : "Checkout with Paypal"}
+                : `Checkout with Paypal (${isDirectCheckout ? 'Direct Purchase' : 'Cart'})`}
             </Button>
           </div>
         </div>

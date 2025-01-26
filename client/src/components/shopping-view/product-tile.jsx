@@ -43,9 +43,8 @@ function ShoppingProductTile({
           </div>
           <div className="flex justify-between items-center mb-2">
             <span
-              className={`${
-                product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-primary`}
+              className={`${product?.salePrice > 0 ? "line-through" : ""
+                } text-lg font-semibold text-primary`}
             >
               ₹{product?.price}
             </span>
@@ -63,12 +62,21 @@ function ShoppingProductTile({
             Out Of Stock
           </Button>
         ) : (
-          <Button
-            onClick={() =>handleGetProductDetails(product?._id)}
-            className="w-full max-w-sm mx-auto"
-          >
-            Add to cart
-          </Button>
+          <div className="flex flex-col gap-2 w-full">
+            <Button
+              onClick={() => handleGetProductDetails(product?._id)}
+              className="w-full"
+            >
+              Add to cart
+            </Button>
+            <Button
+              onClick={() => handleGetProductDetails(product?._id)}
+              variant="secondary"
+              className="w-full"
+            >
+              Buy Now
+            </Button>
+          </div>
         )}
       </CardFooter>
     </Card>

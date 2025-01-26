@@ -1,10 +1,10 @@
 import { Minus, Plus, Trash } from "lucide-react";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
+import { deleteCartItem, updateCartQuantity, removeDirectCheckoutItem } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
 
-function UserCartItemsContent({ cartItem }) {
+function UserCartItemsContent({ cartItem, isDirectCheckout }) {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -36,22 +36,28 @@ function UserCartItemsContent({ cartItem }) {
   };
 
   const handleDelete = () => {
-    dispatch(
-      deleteCartItem({
-        userId: user?.id,
-        productId: cartItem.productId,
-        size: cartItem.size,
-        color: { colorName: cartItem.color.colorName }
-      })
-    ).unwrap().then(() => {
-      toast({ title: "Item removed from cart" });
-    }).catch(error => {
-      toast({
-        title: "Delete failed",
-        description: error.message,
-        variant: "destructive"
+    if (isDirectCheckout) {
+      // Remove from direct checkout items
+      dispatch(removeDirectCheckoutItem(cartItem));
+      toast({ title: "Item removed from checkout" });
+    } else {
+      dispatch(
+        deleteCartItem({
+          userId: user?.id,
+          productId: cartItem.productId,
+          size: cartItem.size,
+          color: { colorName: cartItem.color.colorName }
+        })
+      ).unwrap().then(() => {
+        toast({ title: "Item removed from cart" });
+      }).catch(error => {
+        toast({
+          title: "Delete failed",
+          description: error.message,
+          variant: "destructive"
+        });
       });
-    });
+    }
   };
 
   return (
@@ -65,20 +71,20 @@ function UserCartItemsContent({ cartItem }) {
 
       <div className="flex-1">
         <h3 className="font-bold">{cartItem.title}</h3>
-        
+
         {/* Size and color display */}
         <div className="flex items-center gap-4 mt-1">
           <div className="flex items-center gap-1">
-            <div 
+            <div
               className="w-4 h-4 rounded-full border"
-              style={{ 
+              style={{
                 backgroundColor: cartItem.color?.colorCode,
                 borderColor: cartItem.color?.colorCode
               }}
             />
             <span className="text-sm">{cartItem.color?.colorName}</span>
           </div>
-          
+
           <div className="flex items-center gap-1">
             <span className="text-sm">Size:</span>
             <span className="text-sm font-medium">
@@ -113,7 +119,7 @@ function UserCartItemsContent({ cartItem }) {
       {/* Price & Delete */}
       <div className="flex flex-col items-end">
         <p className="font-semibold">
-        ₹{(
+          ₹{(
             (Number(cartItem.salePrice) > 0
               ? Number(cartItem.salePrice)
               : Number(cartItem.price) || 0) * cartItem.quantity

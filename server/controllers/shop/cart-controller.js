@@ -12,6 +12,63 @@ const findCartItemIndex = (items, productId, size, color) => {
   );
 };
 
+// cart-controller.js
+// cart-controller.js
+const createDirectCheckout = async (req, res) => {
+  try {
+    const { productId, quantity, size, color } = req.body;
+    
+    // Validate product exists
+    const product = await Product.findById(productId)
+      .select('title price salePrice colors sizes totalStock image')
+      .lean();
+
+    if (!product) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Product not found" 
+      });
+    }
+
+    // Validate variant availability
+    const isValidSize = product.sizes.includes(size);
+    const isValidColor = product.colors.some(c => c.colorName === color.colorName);
+    
+    if (!isValidSize || !isValidColor) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid size or color selection"
+      });
+    }
+
+    // Create temporary checkout item
+    const checkoutItem = {
+      productId,
+      title: product.title,
+      price: product.salePrice > 0 ? product.salePrice : product.price,
+      quantity,
+      size,
+      color: {
+        colorName: color.colorName,
+        colorCode: color.colorCode,
+        image: color.image || product.image
+      },
+      image: color.image || product.image,
+      maxStock: product.totalStock
+    };
+
+    res.status(200).json({
+      success: true,
+      data: [checkoutItem] // Return as array for consistency
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Direct checkout failed"
+    });
+  }
+};
+
 const addToCart = async (req, res) => {
   try {
     const { userId, productId, quantity, size, color } = req.body;
@@ -253,4 +310,5 @@ module.exports = {
   updateCartItemQty,
   deleteCartItem,
   fetchCartItems,
+  createDirectCheckout
 };

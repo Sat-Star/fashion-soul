@@ -1,11 +1,12 @@
 import { StarIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { Separator } from "../ui/separator";
 import { Input } from "../ui/input";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
+import { addToCart, fetchCartItems, createDirectCheckout } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
 import { setProductDetails } from "@/store/shop/products-slice";
 import { Label } from "../ui/label";
@@ -23,6 +24,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const { reviews } = useSelector((state) => state.shopReview);
   const [selectedColor, setSelectedColor] = useState(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Add state for variant validation
   const [sizeError, setSizeError] = useState(false);
@@ -31,6 +33,53 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   function handleRatingChange(getRating) {
     setRating(getRating);
   }
+
+  const handleBuyNow = async (getCurrentProductId, getTotalStock) => {
+    // Reuse validation from handleAddToCart
+    let hasError = false;
+    if (!selectedSize) {
+      setSizeError(true);
+      hasError = true;
+    }
+    if (!selectedColor) {
+      setColorError(true);
+      hasError = true;
+    }
+    if (hasError) {
+      toast({
+        title: "Please select both size and color",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const result = await dispatch(
+        createDirectCheckout({
+          productId: getCurrentProductId,
+          quantity: 1,
+          size: selectedSize,
+          color: {
+            colorName: selectedColor.colorName,
+            colorCode: selectedColor.colorCode,
+            image: selectedColor.image
+          }
+        })
+      ).unwrap();
+  
+      if (result.success) {
+        navigate("/shop/checkout?type=direct");
+        setOpen(false);
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to process Buy Now",
+        description: error.message || "Please try again later",
+        variant: "destructive"
+      });
+    }
+  };
+
 
   function handleAddToCart(getCurrentProductId, getTotalStock) {
     let hasError = false;
@@ -156,7 +205,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <p className={`text-2xl font-bold ${productDetails?.salePrice > 0 ? "line-through text-muted-foreground" : "text-primary"}`}>
-              ₹{productDetails?.price}
+                ₹{productDetails?.price}
               </p>
               {productDetails?.salePrice > 0 && (
                 <p className="text-2xl font-bold text-primary">
@@ -204,8 +253,8 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                     setColorError(false);
                   }}
                   className={`h-10 w-10 rounded-full border-2 relative ${selectedColor?.colorName === color.colorName
-                      ? "border-primary shadow-lg"
-                      : "border-muted-foreground"
+                    ? "border-primary shadow-lg"
+                    : "border-muted-foreground"
                     } ${colorError ? "border-destructive" : ""}`}
                   style={{ backgroundColor: color.colorCode }}
                 >
@@ -218,24 +267,34 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           </div>
 
           {/* Add to Cart */}
-          <div className="pt-4">
+          <div className="pt-4 space-y-2">
             {productDetails?.totalStock === 0 ? (
               <Button className="w-full" disabled>
                 Out of Stock
               </Button>
             ) : (
-              <Button
-                className="w-full"
-                onClick={() => handleAddToCart(productDetails?._id, productDetails?.totalStock)}
-              >
-                {cartItems.some(
-                  item => item.productId === productDetails?._id &&
-                    item.size === selectedSize &&
-                    item.color?.colorName === selectedColor?.colorName
-                ) ? "Update Cart" : "Add to Cart"}
-              </Button>
+              <>
+                <Button
+                  className="w-full"
+                  onClick={() => handleAddToCart(productDetails?._id, productDetails?.totalStock)}
+                >
+                  {cartItems.some(
+                    item => item.productId === productDetails?._id &&
+                      item.size === selectedSize &&
+                      item.color?.colorName === selectedColor?.colorName
+                  ) ? "Update Cart" : "Add to Cart"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => handleBuyNow(productDetails?._id, productDetails?.totalStock)}
+                >
+                  Buy Now
+                </Button>
+              </>
             )}
           </div>
+
 
           {/* Reviews Section */}
           <Separator className="my-6" />
