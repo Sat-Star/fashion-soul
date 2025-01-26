@@ -113,7 +113,7 @@ function UserCartItemsContent({ cartItem }) {
       {/* Price & Delete */}
       <div className="flex flex-col items-end">
         <p className="font-semibold">
-        ${(
+        ₹{(
             (Number(cartItem.salePrice) > 0
               ? Number(cartItem.salePrice)
               : Number(cartItem.price) || 0) * cartItem.quantity

@@ -156,11 +156,11 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <p className={`text-2xl font-bold ${productDetails?.salePrice > 0 ? "line-through text-muted-foreground" : "text-primary"}`}>
-                ${productDetails?.price}
+              ₹{productDetails?.price}
               </p>
               {productDetails?.salePrice > 0 && (
                 <p className="text-2xl font-bold text-primary">
-                  ${productDetails?.salePrice}
+                  ₹{productDetails?.salePrice}
                 </p>
               )}
             </div>

@@ -84,11 +84,11 @@ function AdminProductTile({
 
         <div className="flex justify-between items-center mb-2">
           <span className={`${product.salePrice > 0 ? "line-through" : ""} text-lg font-semibold`}>
-            ${product.price}
+          ₹{product.price}
           </span>
           {product.salePrice > 0 && (
             <span className="text-lg font-bold text-red-600">
-              ${product.salePrice}
+              ₹{product.salePrice}
             </span>
           )}
         </div>
