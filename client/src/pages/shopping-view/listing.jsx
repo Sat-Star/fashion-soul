@@ -42,7 +42,7 @@ function ShoppingListing() {
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
   );
-  const { cartItems } = useSelector((state) => state.shopCart);
+  const { cartItems } = useSelector((state) => state.shoppingCart);
   const { user } = useSelector((state) => state.auth);
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState(null);
@@ -85,7 +85,7 @@ function ShoppingListing() {
 
   function handleAddtoCart(getCurrentProductId, getTotalStock) {
     console.log(cartItems);
-    let getCartItems = cartItems.items || [];
+    let getCartItems = cartItems || [];
 
     if (getCartItems.length) {
       const indexOfCurrentItem = getCartItems.findIndex(

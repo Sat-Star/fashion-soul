@@ -54,16 +54,19 @@ export const addProductFormElements = [
     placeholder: "Enter product description",
   },
   {
-    label: "Category",
-    name: "category",
-    componentType: "select",
+    label: "Categories",
+    name: "categories",
+    componentType: "multiselect",
     options: [
       { id: "men", label: "Men" },
-      { id: "women", label: "Women" },
-      { id: "kids", label: "Kids" },
-      { id: "accessories", label: "Accessories" },
-      { id: "footwear", label: "Footwear" },
+      { id: "unisex", label: "Unisex" },
+      { id: "collaboration", label: "Collaboration" },
+      { id: "couple-clothes", label: "Couple Clothes" },
+      { id: "pair-love", label: "Pair With Love Ones" },
+      { id: "limited-edition", label: "Limited Edition" },
+      { id: "newest-arrived", label: "Newest Arrived" },
     ],
+    placeholder: "Select categories...",
   },
   {
     label: "Brand",
@@ -109,54 +112,25 @@ export const addProductFormElements = [
 ];
 
 export const shoppingViewHeaderMenuItems = [
-  {
-    id: "home",
-    label: "Home",
-    path: "/shop/home",
-  },
-  {
-    id: "products",
-    label: "Products",
-    path: "/shop/listing",
-  },
-  {
-    id: "men",
-    label: "Men",
-    path: "/shop/listing",
-  },
-  {
-    id: "women",
-    label: "Women",
-    path: "/shop/listing",
-  },
-  {
-    id: "kids",
-    label: "Kids",
-    path: "/shop/listing",
-  },
-  {
-    id: "footwear",
-    label: "Footwear",
-    path: "/shop/listing",
-  },
-  {
-    id: "accessories",
-    label: "Accessories",
-    path: "/shop/listing",
-  },
-  {
-    id: "search",
-    label: "Search",
-    path: "/shop/search",
-  },
+  { id: "home", label: "Home", path: "/shop/home" },
+  { id: "products", label: "Products", path: "/shop/listing" },
+  { id: "men", label: "Men", path: "/shop/listing?category=men" },
+  { id: "unisex", label: "Unisex", path: "/shop/listing?category=unisex" },
+  { id: "collaboration", label: "Collaboration", path: "/shop/listing?category=collaboration" },
+  { id: "couple-clothes", label: "Couple", path: "/shop/listing?category=couple-clothes" },
+  { id: "limited-edition", label: "Limited", path: "/shop/listing?category=limited-edition" },
+  { id: "newest-arrived", label: "New", path: "/shop/listing?category=newest-arrived" },
+  { id: "search", label: "Search", path: "/shop/search" },
 ];
 
 export const categoryOptionsMap = {
-  men: "Men",
-  women: "Women",
-  kids: "Kids",
-  accessories: "Accessories",
-  footwear: "Footwear",
+  "men": "Men",
+  "unisex": "Unisex",
+  "collaboration": "Collaboration",
+  "couple-clothes": "Couple Clothes",
+  "pair-love": "Pair With Love Ones",
+  "limited-edition": "Limited Edition",
+  "newest-arrived": "Newest Arrived"
 };
 
 export const brandOptionsMap = {
@@ -169,12 +143,14 @@ export const brandOptionsMap = {
 };
 
 export const filterOptions = {
-  category: [
+  categories: [
     { id: "men", label: "Men" },
-    { id: "women", label: "Women" },
-    { id: "kids", label: "Kids" },
-    { id: "accessories", label: "Accessories" },
-    { id: "footwear", label: "Footwear" },
+    { id: "unisex", label: "Unisex" },
+    { id: "collaboration", label: "Collaboration" },
+    { id: "couple-clothes", label: "Couple Clothes" },
+    { id: "pair-love", label: "Pair With Love Ones" },
+    { id: "limited-edition", label: "Limited Edition" },
+    { id: "newest-arrived", label: "Newest Arrived" },
   ],
   brand: [
     { id: "nike", label: "Nike" },

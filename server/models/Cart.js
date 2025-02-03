@@ -6,6 +6,7 @@ const CartSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index : true
     },
     items: [
       {
@@ -13,6 +14,12 @@ const CartSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
           required: true,
+          validate: {
+            validator: async function(v) {
+              return await mongoose.model('Product').exists({ _id: v });
+            },
+            message: props => `Product ${props.value} does not exist`
+          }
         },
         quantity: {
           type: Number,
@@ -22,7 +29,7 @@ const CartSchema = new mongoose.Schema(
         size: {
           // Added size field for each cart item
           type: String, // You can store sizes as strings (e.g., 'S', 'M', 'L')
-          required: true, // Make it required if necessary
+          required: true,
         },
         color: {
           // Add color field

@@ -12,13 +12,13 @@ import { useToast } from "@/components/ui/use-toast";
 function ShoppingCheckout() {
   const [searchParams] = useSearchParams();
   const isDirectCheckout = searchParams.get('type') === 'direct';
-  
+
   // Get items from appropriate source
   const { cartItems } = useSelector((state) => state.shoppingCart);
   const { directCheckoutItems } = useSelector((state) => state.directCheckout);
   const { user } = useSelector((state) => state.auth);
   const { approvalURL } = useSelector((state) => state.shopOrder);
-  
+
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
   const [isPaymentStart, setIsPaymemntStart] = useState(false);
   const dispatch = useDispatch();
@@ -60,10 +60,16 @@ function ShoppingCheckout() {
         productId: singleCartItem?.productId,
         title: singleCartItem?.title,
         image: singleCartItem?.image,
-        price: singleCartItem?.salePrice > 0 
-          ? singleCartItem?.salePrice 
+        price: singleCartItem?.salePrice > 0
+          ? singleCartItem?.salePrice
           : singleCartItem?.price,
         quantity: singleCartItem?.quantity,
+        size: singleCartItem?.size, // Add size
+        color: { // Add color details
+          colorName: singleCartItem?.color?.colorName,
+          colorCode: singleCartItem?.color?.colorCode,
+          image: singleCartItem?.color?.image
+        }
       })),
       addressInfo: {
         addressId: currentSelectedAddress?._id,
@@ -109,26 +115,26 @@ function ShoppingCheckout() {
         <div className="flex flex-col gap-4">
           {itemsToDisplay.length > 0 ? (
             itemsToDisplay.map((item) => (
-              <UserCartItemsContent 
-              key={`${item.productId}-${item.size}-${item.color?.colorName}`}
-              cartItem={item}
-              isDirectCheckout={isDirectCheckout}  // Pass the checkout type
-            />
+              <UserCartItemsContent
+                key={`${item.productId}-${item.size}-${item.color?.colorName}`}
+                cartItem={item}
+                isDirectCheckout={isDirectCheckout}  // Pass the checkout type
+              />
             ))
           ) : (
             <p className="text-muted-foreground">No items to display</p>
           )}
-          
+
           <div className="mt-8 space-y-4">
             <div className="flex justify-between">
               <span className="font-bold">Total</span>
               <span className="font-bold">₹{totalCartAmount.toFixed(2)}</span>
             </div>
           </div>
-          
+
           <div className="mt-4 w-full">
-            <Button 
-              onClick={handleInitiatePaypalPayment} 
+            <Button
+              onClick={handleInitiatePaypalPayment}
               className="w-full"
               disabled={isPaymentStart}
             >

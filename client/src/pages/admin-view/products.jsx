@@ -26,7 +26,7 @@ const initialFormData = {
   image: null,
   title: "",
   description: "",
-  category: "",
+  categories: [],
   brand: "",
   price: "",
   salePrice: "",
@@ -133,7 +133,7 @@ function AdminProducts() {
     const payload = {
       title: formData.title,
       description: formData.description,
-      category: formData.category,
+      categories: formData.categories,
       brand: formData.brand,
       price: parseFloat(formData.price),
       salePrice: parseFloat(formData.salePrice) || 0,
@@ -181,13 +181,27 @@ function AdminProducts() {
   };
 
   const isFormValid = () => {
-    const requiredFields = ['title', 'description', 'category', 'brand', 'price', 'totalStock'];
+    const requiredFields = ['title', 'description', 'brand', 'price', 'totalStock'];
     return (
       uploadedImageUrl &&
       requiredFields.every(field => formData[field]) &&
-      formData.colors.some(color => color?.image)
+      formData.colors.some(color => color?.image) &&
+      formData.categories.length > 0
     );
   };
+
+  useEffect(() => {
+    if (currentEditedId && productList) {
+      const productToEdit = productList.find(p => p._id === currentEditedId);
+      if (productToEdit) {
+        setFormData({
+          ...productToEdit,
+          categories: productToEdit.categories || [], // Ensure array
+          sizes: productToEdit.sizes?.join(', ') || '',
+        });
+      }
+    }
+  }, [currentEditedId, productList]);
 
   useEffect(() => {
     dispatch(fetchAllProducts());
@@ -218,6 +232,12 @@ function AdminProducts() {
         setOpenCreateProductsDialog(false);
         setCurrentEditedId(null);
         setFormData(initialFormData);
+        setColorUploadStates({
+          White: { loading: false, success: false, error: false },
+          Black: { loading: false, success: false, error: false },
+          Blue: { loading: false, success: false, error: false },
+          Red: { loading: false, success: false, error: false },
+        });
       }}>
         <SheetContent side="right" className="overflow-auto">
           <SheetHeader>
@@ -280,7 +300,11 @@ function AdminProducts() {
               formData={formData}
               setFormData={setFormData}
               buttonText={currentEditedId !== null ? "Save Changes" : "Add Product"}
-              formControls={addProductFormElements}
+              formControls={addProductFormElements.map(control => 
+                control.name === 'categories' ? 
+                { ...control, componentType: 'multiselect' } : 
+                control
+              )}
               isBtnDisabled={!isFormValid()}
             />
           </div>

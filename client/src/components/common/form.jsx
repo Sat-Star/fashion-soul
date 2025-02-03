@@ -9,6 +9,7 @@ import {
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
+import { MultiSelect } from "../admin-view/MultiSelect";
 
 function CommonForm({
   formControls,
@@ -85,6 +86,22 @@ function CommonForm({
         );
 
         break;
+
+        case "multiselect":
+      element = (
+        <MultiSelect
+          options={getControlItem.options || []}
+          selected={formData[getControlItem.name] || []}
+          onChange={(values) => 
+            setFormData({
+              ...formData,
+              [getControlItem.name]: values,
+            })
+          }
+          placeholder={getControlItem.placeholder || "Select options..."}
+        />
+      );
+      break;
 
       default:
         element = (

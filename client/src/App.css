@@ -59,3 +59,21 @@ img {
   background-color: #888;
   border-radius: 2px;
 }
+
+/* For the scrollbar in the dropdown */
+.multiselect-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.multiselect-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.multiselect-dropdown::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.multiselect-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

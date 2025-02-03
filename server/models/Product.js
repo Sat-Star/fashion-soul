@@ -5,14 +5,35 @@ const ProductSchema = new mongoose.Schema(
     image: String, // Main image
     title: String,
     description: String,
-    category: String,
+    categories: {
+      type: [String],
+      required: [true, "At least one category is required"],
+      validate: {
+        validator: function(v) {
+          return v.length > 0;
+        },
+        message: "At least one category is required"
+      },
+      enum: {
+        values: [
+          "men",
+          "unisex",
+          "collaboration",
+          "couple-clothes",
+          "pair-love",
+          "limited-edition",
+          "newest-arrived"
+        ],
+        message: "Invalid category"
+      }
+    },
     brand: String,
     price: Number,
     salePrice: Number,
     totalStock: Number,
     averageReview: Number,
     sizes: {
-      type: [String], // Array of strings to store available sizes (e.g., ['S', 'M', 'L'])
+      type: [String],
       required: true,
     },
     colors: [
@@ -20,7 +41,7 @@ const ProductSchema = new mongoose.Schema(
         colorName: { 
           type: String, 
           required: true,
-          enum: ['White', 'Black', 'Blue', 'Red'] // Limit allowed colors
+          enum: ['White', 'Black', 'Blue', 'Red']
         },
         colorCode: { 
           type: String, 

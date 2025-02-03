@@ -38,7 +38,7 @@ const addProduct = async (req, res) => {
     const {
       title,
       description,
-      category,
+      categories,
       brand,
       price,
       salePrice,
@@ -47,6 +47,14 @@ const addProduct = async (req, res) => {
       colors = [],
       mainImage,
     } = req.body;
+
+    // Validate categories
+    if (!Array.isArray(categories) || categories.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one category is required",
+      });
+    }
 
     // Validate main image URL
     if (!mainImage?.startsWith("http")) {
@@ -74,7 +82,17 @@ const addProduct = async (req, res) => {
     const newProduct = await Product.create({
       title: title?.trim(),
       description: description?.trim(),
-      category: category?.trim(),
+      categories: categories.filter((c) =>
+        [
+          "men",
+          "unisex",
+          "collaboration",
+          "couple-clothes",
+          "pair-love",
+          "limited-edition",
+          "newest-arrived",
+        ].includes(c)
+      ),
       brand: brand?.trim(),
       price: Math.max(0, parseFloat(price)) || 0,
       salePrice: Math.max(0, parseFloat(salePrice)) || 0,
@@ -104,26 +122,50 @@ const editProduct = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
+    if (updates.categories) {
+      if (
+        !Array.isArray(updates.categories) ||
+        updates.categories.length === 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "At least one valid category is required",
+        });
+      }
+
+      updates.categories = updates.categories.filter((c) =>
+        [
+          "men",
+          "unisex",
+          "collaboration",
+          "couple-clothes",
+          "pair-love",
+          "limited-edition",
+          "newest-arrived",
+        ].includes(c)
+      );
+    }
+
     const product = await Product.findByIdAndUpdate(
       id,
       updates,
-      { new: true } // Return updated document
+      { new: true, runValidators: true } // Return updated document
     );
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: "Product not found"
+        message: "Product not found",
       });
     }
 
     // Update main image
     if (updates.mainImage) {
-      if (updates.mainImage.startsWith('data:image/')) {
+      if (updates.mainImage.startsWith("data:image/")) {
         // Handle new image upload
-        const [mimeType, base64Data] = updates.mainImage.split(';base64,');
+        const [mimeType, base64Data] = updates.mainImage.split(";base64,");
         const result = await imageUploadUtil({
           buffer: Buffer.from(base64Data, "base64"),
-          mimetype: mimeType.split(':')[1]
+          mimetype: mimeType.split(":")[1],
         });
         product.image = result.secure_url;
       } else {
@@ -156,7 +198,7 @@ const editProduct = async (req, res) => {
     // Update other fields
     if (updates.title) product.title = updates.title.trim();
     if (updates.description) product.description = updates.description.trim();
-    if (updates.category) product.category = updates.category.trim();
+    if (updates.categories) product.categories = updates.categories;
     if (updates.brand) product.brand = updates.brand.trim();
     if (updates.price) product.price = Math.max(0, parseFloat(updates.price));
     if (updates.salePrice)
