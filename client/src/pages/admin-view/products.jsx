@@ -151,16 +151,16 @@ function AdminProducts() {
       const result = await dispatch(action).unwrap();
 
       // Show success FIRST
-    toast({ title: `Product ${currentEditedId ? 'updated' : 'added'} successfully` });
+      toast({ title: `Product ${currentEditedId ? 'updated' : 'added'} successfully` });
 
-    // Refresh list BEFORE closing dialog
-    await dispatch(fetchAllProducts());
+      // Refresh list BEFORE closing dialog
+      await dispatch(fetchAllProducts());
 
-    // Close dialog and reset AFTER refresh
-    setOpenCreateProductsDialog(false);
-    setImageFile(null);
-    setFormData(initialFormData);
-    setCurrentEditedId(null);
+      // Close dialog and reset AFTER refresh
+      setOpenCreateProductsDialog(false);
+      setImageFile(null);
+      setFormData(initialFormData);
+      setCurrentEditedId(null);
 
     } catch (error) {
       toast({
@@ -182,8 +182,10 @@ function AdminProducts() {
 
   const isFormValid = () => {
     const requiredFields = ['title', 'description', 'brand', 'price', 'totalStock'];
+    const hasValidImage = currentEditedId ? true : uploadedImageUrl;
+    
     return (
-      uploadedImageUrl &&
+      hasValidImage &&
       requiredFields.every(field => formData[field]) &&
       formData.colors.some(color => color?.image) &&
       formData.categories.length > 0
@@ -196,9 +198,12 @@ function AdminProducts() {
       if (productToEdit) {
         setFormData({
           ...productToEdit,
-          categories: productToEdit.categories || [], // Ensure array
+          categories: productToEdit.categories || [],
           sizes: productToEdit.sizes?.join(', ') || '',
+          mainImage: productToEdit.image || '' // Ensure image field is mapped
         });
+        // Initialize uploaded image URL from product data
+        setUploadedImageUrl(productToEdit.image || '');
       }
     }
   }, [currentEditedId, productList]);
@@ -222,6 +227,8 @@ function AdminProducts() {
             setFormData={setFormData}
             setOpenCreateProductsDialog={setOpenCreateProductsDialog}
             setCurrentEditedId={setCurrentEditedId}
+            setUploadedImageUrl={setUploadedImageUrl} // Add this
+            setImageFile={setImageFile} // Add this
             product={productItem}
             handleDelete={handleDelete}
           />
@@ -300,10 +307,10 @@ function AdminProducts() {
               formData={formData}
               setFormData={setFormData}
               buttonText={currentEditedId !== null ? "Save Changes" : "Add Product"}
-              formControls={addProductFormElements.map(control => 
-                control.name === 'categories' ? 
-                { ...control, componentType: 'multiselect' } : 
-                control
+              formControls={addProductFormElements.map(control =>
+                control.name === 'categories' ?
+                  { ...control, componentType: 'multiselect' } :
+                  control
               )}
               isBtnDisabled={!isFormValid()}
             />

@@ -8,6 +8,8 @@ function AdminProductTile({
   setFormData,
   setOpenCreateProductsDialog,
   setCurrentEditedId,
+  setUploadedImageUrl, // Add this
+  setImageFile,
   handleDelete,
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -122,6 +124,7 @@ function AdminProductTile({
             setFormData({
               ...product,
               sizes: product.sizes?.join(', ') || '',
+              categories: product.categories || [],
               mainImage: product.image || '',
               colors: product.colors || []
             });
