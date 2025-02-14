@@ -21,22 +21,18 @@ import { Badge } from "../ui/badge";
 
 function AdminOrdersView() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
-  const { orderList, orderDetails } = useSelector((state) => state.adminOrder);
+  const { orderList, orderDetails, isLoading } = useSelector((state) => state.adminOrder);
   const dispatch = useDispatch();
 
-  function handleFetchOrderDetails(getId) {
-    dispatch(getOrderDetailsForAdmin(getId));
+  function handleFetchOrderDetails(orderId) {
+    if (orderId) {
+      dispatch(getOrderDetailsForAdmin(orderId));
+    }
   }
 
   useEffect(() => {
     dispatch(getAllOrdersForAdmin());
   }, [dispatch]);
-
-  console.log(orderDetails, "orderList");
-
-  useEffect(() => {
-    if (orderDetails !== null) setOpenDetailsDialog(true);
-  }, [orderDetails]);
 
   return (
     <Card>
@@ -51,54 +47,76 @@ function AdminOrdersView() {
               <TableHead>Order Date</TableHead>
               <TableHead>Order Status</TableHead>
               <TableHead>Order Price</TableHead>
-              <TableHead>
-                <span className="sr-only">Details</span>
-              </TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orderList && orderList.length > 0
-              ? orderList.map((orderItem) => (
-                  <TableRow>
-                    <TableCell>{orderItem?._id}</TableCell>
-                    <TableCell>{orderItem?.orderDate.split("T")[0]}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={`py-1 px-3 ${
-                          orderItem?.orderStatus === "confirmed"
-                            ? "bg-green-500"
-                            : orderItem?.orderStatus === "rejected"
-                            ? "bg-red-600"
-                            : "bg-black"
-                        }`}
-                      >
-                        {orderItem?.orderStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>${orderItem?.totalAmount}</TableCell>
-                    <TableCell>
-                      <Dialog
-                        open={openDetailsDialog}
-                        onOpenChange={() => {
-                          setOpenDetailsDialog(false);
-                          dispatch(resetOrderDetails());
-                        }}
-                      >
-                        <Button
-                          onClick={() =>
-                            handleFetchOrderDetails(orderItem?._id)
-                          }
-                        >
-                          View Details
-                        </Button>
-                        <AdminOrderDetailsView orderDetails={orderDetails} />
-                      </Dialog>
-                    </TableCell>
-                  </TableRow>
-                ))
-              : null}
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  Loading orders...
+                </TableCell>
+              </TableRow>
+            ) : orderList?.length > 0 ? (
+              orderList.map((orderItem) => (
+                <TableRow key={orderItem._id}>
+                  <TableCell className="font-medium">
+                    {orderItem._id.substring(18, 24).toUpperCase()}
+                  </TableCell>
+                  <TableCell>
+                    {orderItem.orderDate
+                      ? new Date(orderItem.orderDate).toLocaleDateString()
+                      : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      className={`py-1 px-3 ${
+                        orderItem.orderStatus === "confirmed"
+                          ? "bg-green-500"
+                          : orderItem.orderStatus === "rejected"
+                          ? "bg-red-600"
+                          : "bg-gray-500"
+                      }`}
+                    >
+                      {orderItem.orderStatus || 'Processing'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>₹{orderItem.totalAmount?.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        handleFetchOrderDetails(orderItem._id);
+                        setOpenDetailsDialog(true);
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  No orders found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
+
+        <Dialog
+          open={openDetailsDialog}
+          onOpenChange={(open) => {
+            if (!open) {
+              setOpenDetailsDialog(false);
+              dispatch(resetOrderDetails());
+            }
+          }}
+        >
+          <AdminOrderDetailsView orderDetails={orderDetails} />
+        </Dialog>
       </CardContent>
     </Card>
   );

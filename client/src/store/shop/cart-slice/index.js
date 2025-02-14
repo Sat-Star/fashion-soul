@@ -2,6 +2,7 @@ import axios from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 const initialState = {
+  cartId: null,
   cartItems: [],
   isLoading: false,
   error: null,
@@ -106,6 +107,7 @@ const shoppingCartSlice = createSlice({
       // Fetch Cart Items
       .addCase(fetchCartItems.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.cartId = action.payload.data._id;
         state.cartItems = action.payload.data.items.map((item) => ({
           productId: item.productId,
           title: item.title,

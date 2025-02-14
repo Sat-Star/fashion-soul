@@ -40,22 +40,24 @@ function AuthRegister() {
   return (
     <div className="mx-auto w-full max-w-md space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Create new account
+        <h1 className="text-3xl font-bold tracking-tight text-brown-800 font-serif">
+          Join Soulvard
         </h1>
-        <p className="mt-2">
+        <p className="mt-2 text-brown-600">
           Already have an account
           <Link
-            className="font-medium ml-2 text-primary hover:underline"
+            className="font-medium ml-2 text-brown-800 hover:text-brown-900 underline"
             to="/auth/login"
           >
-            Login
+            Sign In
           </Link>
         </p>
       </div>
       <CommonForm
+        className="bg-cream-100 p-8 rounded-lg border border-cream-200"
         formControls={registerFormControls}
-        buttonText={"Sign Up"}
+        buttonText={"Create Account"}
+        buttonClassName="w-full bg-brown-800 hover:bg-brown-900 text-cream-100"
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}

@@ -36,38 +36,47 @@ function UserCartWrapper({ setOpenCartSheet }) {
   }, 0);
 
   return (
-    <SheetContent className="sm:max-w-md">
+    <SheetContent className="sm:max-w-md bg-cream-50 border-l-2 border-cream-200 flex flex-col">
       <SheetHeader>
-        <SheetTitle>Your Cart</SheetTitle>
+        <SheetTitle className="font-serif text-2xl text-brown-900 border-b border-cream-200 pb-4">
+          Your Shopping Bag
+        </SheetTitle>
       </SheetHeader>
 
-      <div className="mt-8 space-y-4">
-        {isLoading ? (
-          <div className="text-center">Loading cart items...</div>
-        ) : error ? (
-          <div className="text-destructive text-center">
-            Error loading cart: {error}
-          </div>
-        ) : cartItems?.length > 0 ? (
-          cartItems.map((item) => (
-            <UserCartItemsContent
-              key={`${item.productId}-${item.size}-${item.color?.colorName}`}
-              cartItem={item}
-            />
-          ))
-        ) : (
-          <div className="text-center text-muted-foreground">
-            Your cart is empty
-          </div>
-        )}
+      <div className="flex-1 overflow-y-auto">
+        <div className="mt-4 space-y-4">
+          {isLoading ? (
+            <div className="text-center text-brown-600">Loading your items...</div>
+          ) : error ? (
+            <div className="text-brown-800 text-center bg-cream-100 p-3 rounded-lg">
+              Error loading cart: {error}
+            </div>
+          ) : cartItems?.length > 0 ? (
+            cartItems.map((item) => (
+              <UserCartItemsContent
+                key={`${item.productId}-${item.size}-${item.color?.colorName}`}
+                cartItem={item}
+              />
+            ))
+          ) : (
+            <div className="text-center text-brown-600 pt-8">
+              No items in your bag
+            </div>
+          )}
+        </div>
       </div>
 
       {cartItems?.length > 0 && (
-        <div className="mt-8 space-y-4">
-          <div className="flex justify-between items-center">
-            <span className="font-bold text-lg">Total:</span>
-            <span className="font-bold text-lg">
-            ₹{totalCartAmount.toFixed(2)}
+        <div className="pt-4 border-t border-cream-200 bg-cream-50 sticky bottom-0">
+          <div className="flex justify-between items-center mb-4">
+            <span className="font-serif font-bold text-xl text-brown-900">
+              Total Amount:
+            </span>
+            <span className="font-serif font-bold text-xl text-brown-900">
+              ₹{totalCartAmount.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}
             </span>
           </div>
 
@@ -76,10 +85,10 @@ function UserCartWrapper({ setOpenCartSheet }) {
               navigate("/shop/checkout");
               setOpenCartSheet(false);
             }}
-            className="w-full mt-4"
+            className="w-full h-12 text-lg bg-brown-800 hover:bg-brown-900 text-cream-100 transition-colors"
             size="lg"
           >
-            Proceed to Checkout
+            Secure Checkout
           </Button>
         </div>
       )}

@@ -7,7 +7,61 @@ const initialState = {
   orderId: null,
   orderList: [],
   orderDetails: null,
+  paymentVerificationLoading: false,
+  phonePeError: null,
 };
+
+// export const verifyPhonePePayment = createAsyncThunk(
+//   "shopOrders/verifyPhonePePayment",
+//   async (transactionId, { rejectWithValue }) => { // Single parameter
+//     try {
+//       const response = await axios.get(
+//         `${import.meta.env.VITE_API_BASE_URL}/shop/order/verify-payment`,
+//         { params: { transactionId } } // Proper axios params
+//       );
+//       return response.data;
+//     } catch (error) {
+//       return rejectWithValue(error.response?.data?.message || error.message);
+//     }
+//   }
+// );
+
+export const verifyPhonePePayment = createAsyncThunk(
+  "shopOrders/verifyPhonePePayment",
+  async (transactionId, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/shop/order/verify-payment`,
+        { 
+          params: { transactionId }, 
+          timeout: 15000 // Increased timeout for PhonePe latency
+        }
+      );
+
+      // Handle API success but payment failure
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Payment verification failed");
+      }
+
+      // Validate critical response data
+      if (!response.data.data?.transactionId || !response.data.data?.status) {
+        throw new Error("Invalid verification response format");
+      }
+
+      return {
+        ...response.data,
+        transactionId // Ensure we return the verified ID
+      };
+
+    } catch (error) {
+      // Handle different error types
+      const errorMessage = error.response?.data?.error?.message || 
+                          error.message || 
+                          "Payment verification failed";
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
 
 export const createNewOrder = createAsyncThunk(
   "/order/createNewOrder",
@@ -107,6 +161,25 @@ const shoppingOrderSlice = createSlice({
       .addCase(getOrderDetails.rejected, (state) => {
         state.isLoading = false;
         state.orderDetails = null;
+      })
+      .addCase(verifyPhonePePayment.pending, (state) => {
+        state.paymentVerificationLoading = true;
+        state.phonePeError = null;
+      })
+      .addCase(verifyPhonePePayment.fulfilled, (state, action) => {
+        state.paymentVerificationLoading = false;
+        // Update order status in list
+        state.orderList = state.orderList.map((order) =>
+          order._id === action.payload.data._id ? action.payload.data : order
+        );
+        // Update current order details if open
+        if (state.orderDetails?._id === action.payload.data._id) {
+          state.orderDetails = action.payload.data;
+        }
+      })
+      .addCase(verifyPhonePePayment.rejected, (state, action) => {
+        state.paymentVerificationLoading = false;
+        state.phonePeError = action.payload;
       });
   },
 });

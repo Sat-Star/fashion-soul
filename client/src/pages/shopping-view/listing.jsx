@@ -146,32 +146,43 @@ function ShoppingListing() {
   console.log(productList, "productListproductListproductList");
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
+    <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8 p-6 md:p-8 bg-cream-50 min-h-screen">
       <ProductFilter filters={filters} handleFilter={handleFilter} />
-      <div className="bg-background w-full rounded-lg shadow-sm">
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-extrabold">All Products</h2>
-          <div className="flex items-center gap-3">
-            <span className="text-muted-foreground">
-              {productList?.length} Products
+      
+      <div className="bg-cream-50 w-full rounded-lg border-2 border-cream-200 shadow-sm">
+        <div className="p-6 border-b border-cream-200 flex items-center justify-between">
+          <h2 className="text-2xl font-serif font-bold text-brown-900">
+            Curated Collection
+          </h2>
+          <div className="flex items-center gap-4">
+            <span className="text-brown-600">
+              {productList?.length} Artisanal Pieces
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-2 border-brown-800 text-brown-800 hover:bg-brown-800 hover:text-cream-100"
                 >
                   <ArrowUpDownIcon className="h-4 w-4" />
-                  <span>Sort by</span>
+                  <span>Sort</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuRadioGroup value={sort} onValueChange={handleSort}>
+              <DropdownMenuContent 
+                align="end" 
+                className="w-[200px] bg-cream-100 border-2 border-brown-800"
+              >
+                <DropdownMenuRadioGroup 
+                  value={sort} 
+                  onValueChange={handleSort}
+                  className="space-y-1"
+                >
                   {sortOptions.map((sortItem) => (
                     <DropdownMenuRadioItem
                       value={sortItem.id}
                       key={sortItem.id}
+                      className="text-brown-800 hover:bg-cream-200 focus:bg-cream-200"
                     >
                       {sortItem.label}
                     </DropdownMenuRadioItem>
@@ -181,18 +192,22 @@ function ShoppingListing() {
             </DropdownMenu>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-          {productList && productList.length > 0
-            ? productList.map((productItem) => (
-                <ShoppingProductTile
-                  handleGetProductDetails={handleGetProductDetails}
-                  product={productItem}
-                  handleAddtoCart={handleAddtoCart}
-                />
-              ))
-            : null}
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+          {productList?.map((productItem) => {
+            const key = productItem._id?.$oid || productItem._id;
+            return (
+              <ShoppingProductTile
+                key={key}
+                handleGetProductDetails={handleGetProductDetails}
+                product={productItem}
+                handleAddtoCart={handleAddtoCart}
+              />
+            );
+          })}
         </div>
       </div>
+
       <ProductDetailsDialog
         open={openDetailsDialog}
         setOpen={setOpenDetailsDialog}

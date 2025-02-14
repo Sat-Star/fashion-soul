@@ -19,8 +19,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { checkAuth } from "./store/auth-slice";
 import { Skeleton } from "@/components/ui/skeleton";
-import PaypalReturnPage from "./pages/shopping-view/paypal-return";
+import PhonePeReturnPage from "./pages/shopping-view/phonepe-return";
 import PaymentSuccessPage from "./pages/shopping-view/payment-success";
+import PaymentFailPage from "./pages/shopping-view/payment-failed";
+import PaymentRedirect from "./pages/shopping-view/payment-redirect";
 import SearchProducts from "./pages/shopping-view/search";
 
 function App() {
@@ -77,7 +79,11 @@ function App() {
           path="/shop"
           element={
             <CheckAuth isAuthenticated={isAuthenticated} user={user}>
-              <ShoppingLayout />
+              {isLoading ? (
+                <Skeleton className="w-full h-[400px]" />
+              ) : (
+                <ShoppingLayout />
+              )}
             </CheckAuth>
           }
         >
@@ -85,8 +91,11 @@ function App() {
           <Route path="listing" element={<ShoppingListing />} />
           <Route path="checkout" element={<ShoppingCheckout />} />
           <Route path="account" element={<ShoppingAccount />} />
-          <Route path="paypal-return" element={<PaypalReturnPage />} />
+
+          <Route path="phonepe-return" element={<PhonePeReturnPage />} />
           <Route path="payment-success" element={<PaymentSuccessPage />} />
+          <Route path="payment-failed" element={<PaymentFailPage />} />
+          <Route path="payment-redirect" element={<PaymentRedirect />} />
           <Route path="search" element={<SearchProducts />} />
         </Route>
         <Route path="/unauth-page" element={<UnauthPage />} />

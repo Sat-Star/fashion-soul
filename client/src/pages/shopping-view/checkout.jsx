@@ -8,6 +8,7 @@ import { useState } from "react";
 import { createNewOrder } from "@/store/shop/order-slice";
 import { Navigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import axios from "axios";
 
 function ShoppingCheckout() {
   const [searchParams] = useSearchParams();
@@ -36,7 +37,7 @@ function ShoppingCheckout() {
     0
   ) || 0;
 
-  function handleInitiatePaypalPayment() {
+  function handleInitiatePhonepePayment() {
     if (itemsToDisplay.length === 0) {
       toast({
         title: "Your cart is empty. Please add items to proceed",
@@ -55,6 +56,7 @@ function ShoppingCheckout() {
 
     const orderData = {
       userId: user?.id,
+      totalAmount: totalCartAmount,
       cartId: isDirectCheckout ? 'direct-checkout' : cartItems?._id || 'regular-cart',
       cartItems: itemsToDisplay.map((singleCartItem) => ({
         productId: singleCartItem?.productId,
@@ -64,8 +66,8 @@ function ShoppingCheckout() {
           ? singleCartItem?.salePrice
           : singleCartItem?.price,
         quantity: singleCartItem?.quantity,
-        size: singleCartItem?.size, // Add size
-        color: { // Add color details
+        size: singleCartItem?.size,
+        color: {
           colorName: singleCartItem?.color?.colorName,
           colorCode: singleCartItem?.color?.colorCode,
           image: singleCartItem?.color?.image
@@ -80,18 +82,33 @@ function ShoppingCheckout() {
         notes: currentSelectedAddress?.notes,
       },
       orderStatus: "pending",
-      paymentMethod: "paypal",
+      paymentMethod: "phonepe",
       paymentStatus: "pending",
-      totalAmount: totalCartAmount,
       orderDate: new Date(),
       orderUpdateDate: new Date(),
       paymentId: "",
       payerId: "",
     };
 
+    // axios.post('/api/shop/order/create', orderData)
+    //   .then(response => {
+    //     if (response.data.success && response.data.paymentUrl) {
+    //       window.location.href = response.data.paymentUrl;
+    //     } else {
+    //       toast({ title: "Payment initiation failed", variant: "destructive" });
+    //     }
+    //   })
+    //   .catch(error => {
+    //     toast({
+    //       title: error.response?.data?.error || "Payment failed to initiate",
+    //       variant: "destructive"
+    //     });
+    //   });
+
     dispatch(createNewOrder(orderData)).then((data) => {
       if (data?.payload?.success) {
         setIsPaymemntStart(true);
+        window.location.href = data.payload.paymentUrl;
       } else {
         setIsPaymemntStart(false);
       }
@@ -118,7 +135,7 @@ function ShoppingCheckout() {
               <UserCartItemsContent
                 key={`${item.productId}-${item.size}-${item.color?.colorName}`}
                 cartItem={item}
-                isDirectCheckout={isDirectCheckout}  // Pass the checkout type
+                isDirectCheckout={isDirectCheckout}
               />
             ))
           ) : (
@@ -134,13 +151,13 @@ function ShoppingCheckout() {
 
           <div className="mt-4 w-full">
             <Button
-              onClick={handleInitiatePaypalPayment}
+              onClick={handleInitiatePhonepePayment}
               className="w-full"
               disabled={isPaymentStart}
             >
               {isPaymentStart
                 ? "Processing Paypal Payment..."
-                : `Checkout with Paypal (${isDirectCheckout ? 'Direct Purchase' : 'Cart'})`}
+                : `Pay with Phonepe (${isDirectCheckout ? 'Direct Purchase' : 'Cart'})`}
             </Button>
           </div>
         </div>

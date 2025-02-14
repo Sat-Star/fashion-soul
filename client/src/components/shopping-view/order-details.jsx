@@ -17,7 +17,12 @@ function ShoppingOrderDetailsView({ orderDetails }) {
           </div>
           <div className="flex mt-2 items-center justify-between">
             <p className="font-medium">Order Date</p>
-            <Label>{orderDetails?.orderDate.split("T")[0]}</Label>
+            <Label>
+              {orderDetails?.orderDate ?
+                new Date(orderDetails.orderDate).toLocaleDateString() :
+                'N/A'
+              }
+            </Label>
           </div>
           <div className="flex mt-2 items-center justify-between">
             <p className="font-medium">Order Price</p>
@@ -35,13 +40,12 @@ function ShoppingOrderDetailsView({ orderDetails }) {
             <p className="font-medium">Order Status</p>
             <Label>
               <Badge
-                className={`py-1 px-3 ${
-                  orderDetails?.orderStatus === "confirmed"
+                className={`py-1 px-3 ${orderDetails?.orderStatus === "confirmed"
                     ? "bg-green-500"
                     : orderDetails?.orderStatus === "rejected"
-                    ? "bg-red-600"
-                    : "bg-black"
-                }`}
+                      ? "bg-red-600"
+                      : "bg-black"
+                  }`}
               >
                 {orderDetails?.orderStatus}
               </Badge>
@@ -56,36 +60,36 @@ function ShoppingOrderDetailsView({ orderDetails }) {
               {orderDetails?.cartItems && orderDetails?.cartItems.length > 0
                 ? orderDetails?.cartItems.map((item) => (
                   <li className="flex flex-col gap-2 py-3 border-b">
-                  <div className="flex items-center justify-between">
-                    <span>Title: {item.title}</span>
-                    <span>Price: ₹{item.price}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <span>Size: {item.size}</span>
-                      <span>|</span>
-                      <div className="flex items-center gap-1">
-                        <div 
-                          className="w-4 h-4 rounded-full border"
-                          style={{ 
-                            backgroundColor: item.color?.colorCode,
-                            borderColor: item.color?.colorCode
-                          }}
-                        />
-                        <span>{item.color?.colorName}</span>
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <span>Title: {item.title}</span>
+                      <span>Price: ₹{item.price}</span>
                     </div>
-                    <span>Quantity: {item.quantity}</span>
-                  </div>
-                  {item.color?.image && (
-                    <img 
-                      src={item.color.image} 
-                      className="w-16 h-16 object-cover rounded-lg mt-2"
-                      alt="Color variant"
-                    />
-                  )}
-                </li>
-                  ))
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span>Size: {item.size}</span>
+                        <span>|</span>
+                        <div className="flex items-center gap-1">
+                          <div
+                            className="w-4 h-4 rounded-full border"
+                            style={{
+                              backgroundColor: item.color?.colorCode,
+                              borderColor: item.color?.colorCode
+                            }}
+                          />
+                          <span>{item.color?.colorName}</span>
+                        </div>
+                      </div>
+                      <span>Quantity: {item.quantity}</span>
+                    </div>
+                    {item.color?.image && (
+                      <img
+                        src={item.color.image}
+                        className="w-16 h-16 object-cover rounded-lg mt-2"
+                        alt="Color variant"
+                      />
+                    )}
+                  </li>
+                ))
                 : null}
             </ul>
           </div>

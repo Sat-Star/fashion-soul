@@ -2,9 +2,9 @@ import CommonForm from "@/components/common/form";
 import { useToast } from "@/components/ui/use-toast";
 import { loginFormControls } from "@/config";
 import { loginUser } from "@/store/auth-slice";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const initialState = {
   email: "",
@@ -12,6 +12,7 @@ const initialState = {
 };
 
 function AuthLogin() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState(initialState);
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -24,6 +25,15 @@ function AuthLogin() {
         toast({
           title: data?.payload?.message,
         });
+
+        const pendingTransaction = sessionStorage.getItem('pendingTransaction');
+        if (pendingTransaction) {
+          sessionStorage.removeItem('pendingTransaction');
+          navigate(`/shop/phonepe-return?transactionId=${pendingTransaction}`);
+        } else {
+          navigate(user?.role === 'admin' ? '/admin/dashboard' : '/shop/home');
+        }
+
       } else {
         toast({
           title: data?.payload?.message,
@@ -33,25 +43,38 @@ function AuthLogin() {
     });
   }
 
+  useEffect(() => {
+    const pendingTransaction = sessionStorage.getItem('pendingTransaction');
+    if (pendingTransaction) {
+      toast({
+        title: "Please login to complete your payment",
+        variant: "default",
+      });
+    }
+  }, []);
+
   return (
     <div className="mx-auto w-full max-w-md space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Sign in to your account
+        <h1 className="text-3xl font-bold tracking-tight text-brown-800 font-serif">
+          Welcome Back to Soulvard
         </h1>
-        <p className="mt-2">
+        <p className="mt-2 text-brown-600">
           Don't have an account
           <Link
-            className="font-medium ml-2 text-primary hover:underline"
+            className="font-medium ml-2 text-brown-800 hover:text-brown-900 underline"
             to="/auth/register"
           >
-            Register
+            Create Account
           </Link>
         </p>
       </div>
       <CommonForm
+        // Add classNames prop if your CommonForm accepts it
+        className="bg-cream-100 p-8 rounded-lg border border-cream-200"
         formControls={loginFormControls}
         buttonText={"Sign In"}
+        buttonClassName="w-full bg-brown-800 hover:bg-brown-900 text-cream-100"
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}

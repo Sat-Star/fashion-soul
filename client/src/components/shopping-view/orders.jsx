@@ -23,21 +23,19 @@ function ShoppingOrders() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { orderList, orderDetails } = useSelector((state) => state.shopOrder);
+  const { orderList, orderDetails, isLoading } = useSelector((state) => state.shopOrder);
 
-  function handleFetchOrderDetails(getId) {
-    dispatch(getOrderDetails(getId));
+  function handleFetchOrderDetails(orderId) {
+    if (orderId) {
+      dispatch(getOrderDetails(orderId));
+    }
   }
 
   useEffect(() => {
-    dispatch(getAllOrdersByUserId(user?.id));
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (orderDetails !== null) setOpenDetailsDialog(true);
-  }, [orderDetails]);
-
-  console.log(orderDetails, "orderDetails");
+    if (user?.id) {
+      dispatch(getAllOrdersByUserId(user.id));
+    }
+  }, [dispatch, user?.id]);
 
   return (
     <Card>
@@ -52,54 +50,75 @@ function ShoppingOrders() {
               <TableHead>Order Date</TableHead>
               <TableHead>Order Status</TableHead>
               <TableHead>Order Price</TableHead>
-              <TableHead>
-                <span className="sr-only">Details</span>
-              </TableHead>
+              <TableHead>Details</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orderList && orderList.length > 0
-              ? orderList.map((orderItem) => (
-                  <TableRow>
-                    <TableCell>{orderItem?._id}</TableCell>
-                    <TableCell>{orderItem?.orderDate.split("T")[0]}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={`py-1 px-3 ${
-                          orderItem?.orderStatus === "confirmed"
-                            ? "bg-green-500"
-                            : orderItem?.orderStatus === "rejected"
-                            ? "bg-red-600"
-                            : "bg-black"
-                        }`}
-                      >
-                        {orderItem?.orderStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>${orderItem?.totalAmount}</TableCell>
-                    <TableCell>
-                      <Dialog
-                        open={openDetailsDialog}
-                        onOpenChange={() => {
-                          setOpenDetailsDialog(false);
-                          dispatch(resetOrderDetails());
-                        }}
-                      >
-                        <Button
-                          onClick={() =>
-                            handleFetchOrderDetails(orderItem?._id)
-                          }
-                        >
-                          View Details
-                        </Button>
-                        <ShoppingOrderDetailsView orderDetails={orderDetails} />
-                      </Dialog>
-                    </TableCell>
-                  </TableRow>
-                ))
-              : null}
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  Loading orders...
+                </TableCell>
+              </TableRow>
+            ) : orderList?.length > 0 ? (
+              orderList.map((orderItem) => (
+                <TableRow key={orderItem._id}>
+                  <TableCell className="font-medium">
+                    {orderItem._id.substring(18, 24).toUpperCase()}
+                  </TableCell>
+                  <TableCell>
+                    {orderItem.orderDate 
+                      ? new Date(orderItem.orderDate).toLocaleDateString()
+                      : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      className={`py-1 px-3 ${
+                        orderItem.orderStatus === "confirmed"
+                          ? "bg-green-500"
+                          : orderItem.orderStatus === "rejected"
+                          ? "bg-red-600"
+                          : "bg-gray-500"
+                      }`}
+                    >
+                      {orderItem.orderStatus || 'Processing'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>₹{orderItem.totalAmount?.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        handleFetchOrderDetails(orderItem._id);
+                        setOpenDetailsDialog(true);
+                      }}
+                    >
+                      View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  No orders found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
+
+        <Dialog
+          open={openDetailsDialog}
+          onOpenChange={(open) => {
+            if (!open) {
+              setOpenDetailsDialog(false);
+              dispatch(resetOrderDetails());
+            }
+          }}
+        >
+          <ShoppingOrderDetailsView orderDetails={orderDetails} />
+        </Dialog>
       </CardContent>
     </Card>
   );
